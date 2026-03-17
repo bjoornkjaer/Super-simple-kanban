@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Foreningsplanner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green-900:#1B4332;
+  --green-800:#2D6A4F;
+  --green-600:#40916C;
+  --green-400:#74C69D;
+  --green-200:#B7E4C7;
+  --green-100:#D8F3DC;
+  --green-50:#F0FAF4;
+  --accent:#F4A261;
+  --accent-dark:#E76F51;
+  --amber:#FBBF24;
+  --red:#EF4444;
+  --text:#1a2e25;
+  --muted:#6b7280;
+  --bg:#f8faf8;
+  --bg2:#ffffff;
+  --border:#e2ebe5;
+  --shadow:0 1px 4px rgba(0,0,0,.07),0 4px 16px rgba(0,0,0,.05);
+  --radius:10px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── HEADER ── */
+header{
+  background:var(--green-800);
+  padding:0 2rem;
+  height:56px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:1rem;
+}
+.header-left{display:flex;align-items:center;gap:.75rem}
+.logo{font-family:'DM Serif Display',serif;font-size:20px;color:#fff;white-space:nowrap}
+.board-badge{
+  background:rgba(255,255,255,.15);
+  color:rgba(255,255,255,.9);
+  font-size:12px;font-weight:500;
+  padding:3px 10px;border-radius:20px;
+  backdrop-filter:blur(4px);
+  cursor:pointer;
+  display:flex;align-items:center;gap:5px;
+  transition:background .15s;
+}
+.board-badge:hover{background:rgba(255,255,255,.25)}
+.board-badge svg{width:12px;height:12px;opacity:.7}
+.header-right{display:flex;align-items:center;gap:.5rem}
+.btn-header{
+  background:rgba(255,255,255,.15);
+  color:#fff;border:none;
+  font-family:'DM Sans',sans-serif;
+  font-size:13px;font-weight:500;
+  padding:6px 14px;border-radius:6px;
+  cursor:pointer;display:flex;align-items:center;gap:6px;
+  transition:background .15s;
+}
+.btn-header:hover{background:rgba(255,255,255,.28)}
+
+.conn-badge{
+  display:flex;align-items:center;gap:.4rem;
+  background:rgba(255,255,255,.1);
+  padding:4px 10px;border-radius:20px;
+}
+@keyframes pulse{
+  0%,100%{opacity:1}50%{opacity:.5}
+}
+.app{display:flex;height:calc(100vh - 56px)}
+.sidebar{
+  width:240px;min-width:240px;
+  background:var(--green-900);
+  padding:1rem .75rem;
+  display:flex;flex-direction:column;
+  gap:.25rem;
+  overflow-y:auto;
+}
+.sidebar-title{
+  font-size:11px;font-weight:600;
+  letter-spacing:.08em;text-transform:uppercase;
+  color:rgba(255,255,255,.45);
+  padding:.5rem .5rem .25rem;
+}
+.board-item{
+  display:flex;align-items:center;gap:.6rem;
+  padding:.5rem .75rem;
+  border-radius:7px;
+  cursor:pointer;
+  color:rgba(255,255,255,.8);
+  font-size:13.5px;font-weight:500;
+  transition:all .15s;
+  position:relative;
+}
+.board-item:hover{background:rgba(255,255,255,.1);color:#fff}
+.board-item.active{background:rgba(255,255,255,.18);color:#fff}
+.board-item .dot{
+  width:8px;height:8px;border-radius:50%;
+  flex-shrink:0;
+}
+.board-item .count{
+  margin-left:auto;
+  background:rgba(255,255,255,.15);
+  font-size:11px;font-weight:600;
+  padding:1px 7px;border-radius:20px;
+  color:rgba(255,255,255,.7);
+}
+.board-item .del-board{
+  margin-left:auto;
+  opacity:0;
+  background:none;border:none;
+  color:rgba(255,255,255,.5);
+  cursor:pointer;font-size:14px;
+  padding:2px 4px;
+  transition:opacity .15s;
+}
+.board-item:hover .del-board{opacity:1}
+.board-item:hover .count{display:none}
+
+.add-board-btn{
+  display:flex;align-items:center;gap:.6rem;
+  padding:.5rem .75rem;
+  border-radius:7px;
+  cursor:pointer;
+  color:rgba(255,255,255,.45);
+  font-size:13px;
+  margin-top:.25rem;
+  transition:all .15s;
+  border:none;background:none;
+  font-family:'DM Sans',sans-serif;
+  width:100%;text-align:left;
+}
+.add-board-btn:hover{color:rgba(255,255,255,.8);background:rgba(255,255,255,.07)}
+
+/* ── MAIN BOARD ── */
+.main{flex:1;overflow:auto;padding:1.5rem}
+.board-header{
+  display:flex;align-items:center;gap:1rem;
+  margin-bottom:1.5rem;
+}
+.board-title-wrap{
+  display:flex;align-items:center;gap:.5rem;
+}
+.board-color-dot{width:12px;height:12px;border-radius:50%}
+.board-title{
+  font-family:'DM Serif Display',serif;
+  font-size:22px;font-weight:400;
+  color:var(--text);
+}
+.board-title-edit{
+  font-family:'DM Serif Display',serif;
+  font-size:22px;font-weight:400;
+  color:var(--text);
+  border:none;border-bottom:2px solid var(--green-400);
+  background:transparent;outline:none;
+  padding:0 2px;width:200px;
+}
+.board-meta{font-size:13px;color:var(--muted);margin-left:.25rem}
+
+/* ── COLUMNS ── */
+.columns{
+  display:flex;gap:1rem;
+  align-items:flex-start;
+  min-height:300px;
+}
+.column{
+  background:var(--bg2);
+  border:0.5px solid var(--border);
+  border-radius:var(--radius);
+  width:280px;min-width:280px;
+  box-shadow:var(--shadow);
+  display:flex;flex-direction:column;
+}
+.col-header{
+  padding:.75rem 1rem .6rem;
+  display:flex;align-items:center;gap:.5rem;
+  border-bottom:1px solid var(--border);
+}
+.col-color{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.col-title{font-size:13px;font-weight:600;flex:1;letter-spacing:.01em}
+.col-count{
+  font-size:11px;font-weight:600;
+  background:var(--bg);
+  border:1px solid var(--border);
+  padding:1px 7px;border-radius:20px;
+  color:var(--muted);
+}
+.col-menu-btn{
+  background:none;border:none;cursor:pointer;
+  color:var(--muted);font-size:16px;padding:2px 4px;
+  line-height:1;border-radius:4px;
+  opacity:0;transition:opacity .15s;
+}
+.col-header:hover .col-menu-btn{opacity:1}
+
+.col-body{
+  padding:.75rem;
+  display:flex;flex-direction:column;
+  gap:.5rem;
+  min-height:80px;
+  transition:background .15s;
+}
+.col-body.drag-over{background:var(--green-50)}
+
+/* ── CARDS ── */
+.card{
+  background:var(--bg);
+  border:0.5px solid var(--border);
+  border-radius:8px;
+  padding:.7rem .85rem;
+  cursor:grab;
+  transition:box-shadow .15s, transform .15s, border-color .15s;
+  position:relative;
+}
+.card:hover{
+  box-shadow:0 3px 12px rgba(0,0,0,.1);
+  border-color:var(--green-200);
+}
+.card.dragging{
+  opacity:.4;
+  transform:rotate(1.5deg) scale(.97);
+  cursor:grabbing;
+}
+.card-title{font-size:13.5px;font-weight:500;line-height:1.4;margin-bottom:.3rem}
+.card-desc{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:.5rem}
+.card-footer{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}
+.assignee-chip{
+  display:flex;align-items:center;gap:4px;
+  background:var(--green-100);
+  color:var(--green-800);
+  font-size:11px;font-weight:500;
+  padding:2px 8px;border-radius:20px;
+}
+.assignee-avatar{
+  width:16px;height:16px;border-radius:50%;
+  background:var(--green-400);
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:700;color:#fff;
+  flex-shrink:0;
+}
+.deadline-chip{
+  display:flex;align-items:center;gap:3px;
+  font-size:11px;font-weight:500;
+  padding:2px 8px;border-radius:20px;
+}
+.deadline-chip.ok{background:#F0FAF4;color:var(--green-600)}
+.deadline-chip.soon{background:#FEF3C7;color:#92400E}
+.deadline-chip.overdue{background:#FEE2E2;color:#991B1B}
+.card-actions{
+  position:absolute;top:.5rem;right:.5rem;
+  display:flex;gap:2px;
+  opacity:0;transition:opacity .15s;
+}
+.card:hover .card-actions{opacity:1}
+.card-action-btn{
+  background:var(--bg2);border:0.5px solid var(--border);
+  border-radius:4px;padding:3px 5px;
+  cursor:pointer;font-size:11px;color:var(--muted);
+  line-height:1;
+  transition:all .1s;
+}
+.card-action-btn:hover{background:var(--green-100);color:var(--green-800);border-color:var(--green-200)}
+
+/* ── ADD CARD BUTTON ── */
+.add-card-btn{
+  display:flex;align-items:center;gap:.5rem;
+  padding:.6rem .75rem;
+  margin:.5rem .75rem .75rem;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:13px;color:var(--muted);
+  background:none;border:1px dashed var(--border);
+  font-family:'DM Sans',sans-serif;
+  transition:all .15s;width:calc(100% - 1.5rem);
+}
+.add-card-btn:hover{
+  background:var(--green-50);
+  border-color:var(--green-300);
+  color:var(--green-700);
+}
+
+/* ── ADD COLUMN ── */
+.add-col-btn{
+  width:260px;min-width:260px;
+  background:rgba(255,255,255,.6);
+  border:1.5px dashed var(--border);
+  border-radius:var(--radius);
+  display:flex;align-items:center;justify-content:center;
+  gap:.5rem;
+  font-size:13px;color:var(--muted);
+  cursor:pointer;
+  padding:1rem;
+  transition:all .15s;
+  min-height:80px;
+  font-family:'DM Sans',sans-serif;
+}
+.add-col-btn:hover{background:var(--bg2);border-color:var(--green-300);color:var(--green-700)}
+
+/* ── MODAL ── */
+.modal-overlay{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.35);
+  backdrop-filter:blur(3px);
+  display:flex;align-items:center;justify-content:center;
+  z-index:100;
+  opacity:0;pointer-events:none;
+  transition:opacity .2s;
+}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{
+  background:var(--bg2);
+  border-radius:14px;
+  padding:1.75rem;
+  width:460px;max-width:95vw;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);
+  transform:translateY(12px) scale(.98);
+  transition:transform .2s;
+}
+.modal-overlay.open .modal{transform:translateY(0) scale(1)}
+.modal-title{
+  font-family:'DM Serif Display',serif;
+  font-size:18px;margin-bottom:1.25rem;
+  color:var(--text);
+}
+.form-group{display:flex;flex-direction:column;gap:.4rem;margin-bottom:1rem}
+.form-group label{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.form-group input,.form-group textarea,.form-group select{
+  padding:.55rem .75rem;
+  border:1px solid var(--border);
+  border-radius:7px;
+  font-family:'DM Sans',sans-serif;
+  font-size:13.5px;
+  color:var(--text);
+  background:var(--bg);
+  transition:border-color .15s,box-shadow .15s;
+  outline:none;
+}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{
+  border-color:var(--green-400);
+  box-shadow:0 0 0 3px rgba(116,198,157,.2);
+}
+.form-group textarea{resize:vertical;min-height:70px}
+.form-actions{display:flex;gap:.5rem;justify-content:flex-end;margin-top:1.25rem}
+.btn-cancel{
+  background:none;border:1px solid var(--border);
+  color:var(--muted);
+  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;
+  padding:.5rem 1.1rem;border-radius:7px;cursor:pointer;
+  transition:all .15s;
+}
+.btn-cancel:hover{background:var(--bg);border-color:var(--muted)}
+.btn-primary{
+  background:var(--green-800);color:#fff;border:none;
+  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;
+  padding:.5rem 1.25rem;border-radius:7px;cursor:pointer;
+  transition:background .15s;
+}
+.btn-primary:hover{background:var(--green-600)}
+.btn-danger{
+  background:#FEE2E2;color:#991B1B;border:none;
+  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;
+  padding:.5rem 1rem;border-radius:7px;cursor:pointer;
+  transition:background .15s;margin-right:auto;
+}
+.btn-danger:hover{background:#FECACA}
+
+/* ── COLOR PICKER ── */
+.color-picker{display:flex;gap:.5rem;flex-wrap:wrap}
+.color-dot{
+  width:22px;height:22px;border-radius:50%;
+  cursor:pointer;border:2px solid transparent;
+  transition:transform .1s,border-color .1s;
+}
+.color-dot:hover{transform:scale(1.15)}
+.color-dot.selected{border-color:#fff;box-shadow:0 0 0 2px var(--green-800)}
+
+/* ── EMPTY STATE ── */
+.empty-board{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:1rem;padding:3rem;
+  color:var(--muted);text-align:center;
+}
+.empty-board svg{opacity:.3}
+.empty-board p{font-size:14px;max-width:240px;line-height:1.6}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:1.5rem;right:1.5rem;
+  background:var(--green-900);color:#fff;
+  font-size:13px;font-weight:500;
+  padding:.65rem 1.1rem;border-radius:8px;
+  box-shadow:0 4px 20px rgba(0,0,0,.2);
+  transform:translateY(8px);opacity:0;
+  transition:all .2s;pointer-events:none;
+  z-index:200;
+}
+.toast.show{transform:translateY(0);opacity:1}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--green-200);border-radius:3px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="logo">Foreningsplanner</div>
+    <div class="board-badge" id="current-board-name" onclick="focusSidebar()">
+      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 1a6 6 0 1 1 0 12A6 6 0 0 1 8 2zm-.5 3.5v3.25l2.5 1.5.5-.87-2-1.25V5.5h-1z"/></svg>
+      <span id="board-badge-text">Vælg board</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="conn-badge">
+      <span id="conn-dot" style="width:7px;height:7px;border-radius:50%;background:#fbbf24;flex-shrink:0;display:inline-block"></span>
+      <span id="conn-text" style="font-size:12px;color:rgba(255,255,255,.75)">Forbinder…</span>
+    </div>
+    <button class="btn-header" onclick="openNewTaskModal()">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2Z"/></svg>
+      Ny opgave
+    </button>
+  </div>
+</header>
+
+<div class="app">
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-title">Boards</div>
+    <div id="board-list"></div>
+    <button class="add-board-btn" onclick="openNewBoardModal()">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2Z"/></svg>
+      Nyt board
+    </button>
+  </div>
+
+  <div class="main" id="main">
+    <div class="empty-board" id="empty-state">
+      <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+      <p>Vælg et board i sidebaren, eller opret et nyt for at komme i gang.</p>
+    </div>
+    <div id="board-view" style="display:none">
+      <div class="board-header">
+        <div class="board-title-wrap">
+          <div class="board-color-dot" id="board-dot"></div>
+          <div class="board-title" id="board-view-title"></div>
+        </div>
+        <div class="board-meta" id="board-meta"></div>
+      </div>
+      <div class="columns" id="columns"></div>
+    </div>
+  </div>
+</div>
+
+<!-- NEW TASK MODAL -->
+<div class="modal-overlay" id="task-modal">
+  <div class="modal">
+    <div class="modal-title" id="task-modal-title">Ny opgave</div>
+    <div class="form-group">
+      <label>Titel</label>
+      <input id="f-task-title" placeholder="Hvad skal gøres?">
+    </div>
+    <div class="form-group">
+      <label>Beskrivelse (valgfri)</label>
+      <textarea id="f-task-desc" placeholder="Tilføj detaljer..."></textarea>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem">
+      <div class="form-group">
+        <label>Tildelt til</label>
+        <input id="f-task-assignee" placeholder="Navn">
+      </div>
+      <div class="form-group">
+        <label>Deadline</label>
+        <input id="f-task-deadline" type="date">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Kolonne</label>
+      <select id="f-task-col"></select>
+    </div>
+    <div class="form-actions">
+      <button class="btn-danger" id="task-delete-btn" style="display:none" onclick="deleteCurrentTask()">Slet opgave</button>
+      <button class="btn-cancel" onclick="closeTaskModal()">Annuller</button>
+      <button class="btn-primary" onclick="saveTask()">Gem</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEW BOARD MODAL -->
+<div class="modal-overlay" id="board-modal">
+  <div class="modal">
+    <div class="modal-title">Nyt board</div>
+    <div class="form-group">
+      <label>Navn på board</label>
+      <input id="f-board-name" placeholder="Fx. Sommerfest 2025">
+    </div>
+    <div class="form-group">
+      <label>Farve</label>
+      <div class="color-picker" id="board-color-picker"></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn-cancel" onclick="closeBoardModal()">Annuller</button>
+      <button class="btn-primary" onclick="createBoard()">Opret board</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG ─────────────────────────────────────────────
+const TURSO_URL        = "TURSO_DATABASE_URL";  // fx https://din-db-xxx.turso.io
+const TURSO_AUTH_TOKEN = "TURSO_AUTH_TOKEN";   // fx eyJhbGc...
+
+// ── STATE ──────────────────────────────────────────────
+const BOARD_COLORS = [
+  '#2D6A4F','#40916C','#E76F51','#F4A261','#457B9D',
+  '#6A4E8C','#C77DFF','#E63946','#2EC4B6','#9B8B6E'
+];
+
+const DEFAULT_COLUMNS = ['Ikke startet','I gang','Til review','Færdig'];
+
+let state = {
+  boards: [],
+  activeBoardId: null,
+};
+
+let editingTaskId = null;
+let editingTaskBoardId = null;
+let selectedBoardColor = BOARD_COLORS[0];
+
+// ── TURSO API ─────────────────────────────────────────
+async function tursoQuery(sql, args = []) {
+  const res = await fetch(`${TURSO_URL}/v2/pipeline`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${TURSO_AUTH_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      requests: [{ type: 'execute', stmt: { sql, args: args.map(v => ({ type: 'text', value: String(v) })) } }]
+    })
+  });
+  if (!res.ok) throw new Error(`Turso HTTP ${res.status}`);
+  const data = await res.json();
+  const result = data.results?.[0];
+  if (result?.type === 'error') throw new Error(result.error.message);
+  return result?.response?.result || null;
+}
+
+// ── PERSIST ───────────────────────────────────────────
+async function initDB() {
+  await tursoQuery(`CREATE TABLE IF NOT EXISTS planner_state (
+    key   TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+  )`);
+}
+
+async function saveState() {
+  try {
+    await tursoQuery(
+      `INSERT INTO planner_state (key, value) VALUES ('state', ?)
+       ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
+      [JSON.stringify(state)]
+    );
+  } catch(e) {
+    console.warn('Save error', e);
+    showToast('⚠️ Kunne ikke gemme – tjek forbindelsen');
+  }
+}
+
+async function loadState() {
+  setConnStatus('loading');
+  try {
+    await initDB();
+    const result = await tursoQuery(
+      `SELECT value FROM planner_state WHERE key = 'state'`
+    );
+    const rows = result?.rows || [];
+    if (rows.length > 0) {
+      const raw = rows[0][0]?.value || rows[0]?.value || rows[0][0];
+      if (raw) state = JSON.parse(raw);
+    }
+    setConnStatus('ok');
+  } catch(e) {
+    console.error('Load error', e);
+    setConnStatus('error');
+  }
+  render();
+}
+
+function setConnStatus(status) {
+  const dot  = document.getElementById('conn-dot');
+  const text = document.getElementById('conn-text');
+  if (!dot) return;
+  if (status === 'ok') {
+    dot.style.background = '#86efac';
+    dot.style.animation = 'pulse 2s ease-in-out infinite';
+    text.textContent = 'Forbundet';
+  } else if (status === 'error') {
+    dot.style.background = '#f87171';
+    dot.style.animation = 'none';
+    text.textContent = 'Ikke forbundet';
+  } else {
+    dot.style.background = '#fbbf24';
+    dot.style.animation = 'none';
+    text.textContent = 'Forbinder…';
+  }
+}
+
+// ── HELPERS ───────────────────────────────────────────
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+function activeBoard() {
+  return state.boards.find(b => b.id === state.activeBoardId) || null;
+}
+
+function taskCount(boardId) {
+  const b = state.boards.find(b => b.id === boardId);
+  if (!b) return 0;
+  return b.columns.reduce((s,c) => s + c.tasks.length, 0);
+}
+
+function formatDeadline(dateStr) {
+  if (!dateStr) return null;
+  const d = new Date(dateStr);
+  const now = new Date(); now.setHours(0,0,0,0);
+  const diff = Math.floor((d - now) / 86400000);
+  const label = d.toLocaleDateString('da-DK',{day:'numeric',month:'short'});
+  if (diff < 0) return { label, cls: 'overdue' };
+  if (diff <= 3) return { label, cls: 'soon' };
+  return { label, cls: 'ok' };
+}
+
+function initials(name) {
+  if (!name) return '?';
+  return name.trim().split(/\s+/).map(p=>p[0]).join('').toUpperCase().slice(0,2);
+}
+
+// ── RENDER ────────────────────────────────────────────
+function render() {
+  renderSidebar();
+  renderBoard();
+}
+
+function renderSidebar() {
+  const list = document.getElementById('board-list');
+  list.innerHTML = '';
+  state.boards.forEach(b => {
+    const div = document.createElement('div');
+    div.className = 'board-item' + (b.id === state.activeBoardId ? ' active' : '');
+    div.innerHTML = `
+      <span class="dot" style="background:${b.color}"></span>
+      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${b.name}</span>
+      <span class="count">${taskCount(b.id)}</span>
+      <button class="del-board" onclick="deleteBoard(event,'${b.id}')">✕</button>
+    `;
+    div.addEventListener('click', (e) => {
+      if (e.target.classList.contains('del-board')) return;
+      setActiveBoard(b.id);
+    });
+    list.appendChild(div);
+  });
+}
+
+function renderBoard() {
+  const b = activeBoard();
+  const emptyState = document.getElementById('empty-state');
+  const boardView = document.getElementById('board-view');
+
+  if (!b) {
+    emptyState.style.display = '';
+    boardView.style.display = 'none';
+    document.getElementById('board-badge-text').textContent = 'Vælg board';
+    return;
+  }
+
+  emptyState.style.display = 'none';
+  boardView.style.display = '';
+  document.getElementById('board-badge-text').textContent = b.name;
+  document.getElementById('board-view-title').textContent = b.name;
+  document.getElementById('board-dot').style.background = b.color;
+
+  const total = taskCount(b.id);
+  const done = (b.columns.find(c => c.id === 'done' || c.name.toLowerCase().includes('færdig')) || {tasks:[]}).tasks.length;
+  document.getElementById('board-meta').textContent = `${total} opgaver${total > 0 ? ` · ${done} færdige` : ''}`;
+
+  const cols = document.getElementById('columns');
+  cols.innerHTML = '';
+
+  b.columns.forEach(col => {
+    const colEl = document.createElement('div');
+    colEl.className = 'column';
+    colEl.dataset.colId = col.id;
+
+    colEl.innerHTML = `
+      <div class="col-header">
+        <span class="col-color" style="background:${col.color || '#ccc'}"></span>
+        <span class="col-title">${col.name}</span>
+        <span class="col-count">${col.tasks.length}</span>
+        <button class="col-menu-btn" onclick="deleteColumn(event,'${col.id}')" title="Slet kolonne">✕</button>
+      </div>
+      <div class="col-body" id="col-body-${col.id}" 
+           ondragover="onDragOver(event,'${col.id}')"
+           ondragleave="onDragLeave(event,'${col.id}')"
+           ondrop="onDrop(event,'${col.id}')">
+      </div>
+      <button class="add-card-btn" onclick="openNewTaskModal('${col.id}')">
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2Z"/></svg>
+        Tilføj opgave
+      </button>
+    `;
+
+    const body = colEl.querySelector('.col-body');
+    col.tasks.forEach(task => {
+      body.appendChild(makeTaskCard(task, col.id));
+    });
+
+    cols.appendChild(colEl);
+  });
+
+  // Add column button
+  const addCol = document.createElement('button');
+  addCol.className = 'add-col-btn';
+  addCol.innerHTML = `<svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 2a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 8 2Z"/></svg> Ny kolonne`;
+  addCol.onclick = addColumn;
+  cols.appendChild(addCol);
+}
+
+function makeTaskCard(task, colId) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.draggable = true;
+  card.dataset.taskId = task.id;
+  card.dataset.colId = colId;
+
+  const dl = task.deadline ? formatDeadline(task.deadline) : null;
+
+  card.innerHTML = `
+    <div class="card-actions">
+      <button class="card-action-btn" onclick="openEditTask(event,'${task.id}','${colId}')" title="Rediger">✎</button>
+    </div>
+    <div class="card-title">${escHtml(task.title)}</div>
+    ${task.description ? `<div class="card-desc">${escHtml(task.description)}</div>` : ''}
+    <div class="card-footer">
+      ${task.assignee ? `
+        <div class="assignee-chip">
+          <div class="assignee-avatar">${initials(task.assignee)}</div>
+          ${escHtml(task.assignee)}
+        </div>
+      ` : ''}
+      ${dl ? `<div class="deadline-chip ${dl.cls}">📅 ${dl.label}</div>` : ''}
+    </div>
+  `;
+
+  card.addEventListener('dragstart', onDragStart);
+  card.addEventListener('dragend', onDragEnd);
+  card.addEventListener('dblclick', () => openEditTaskById(task.id, colId));
+
+  return card;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── BOARD ACTIONS ─────────────────────────────────────
+function setActiveBoard(id) {
+  state.activeBoardId = id;
+  saveState();
+  render();
+}
+
+function deleteBoard(e, id) {
+  e.stopPropagation();
+  if (!confirm('Slet dette board og alle dets opgaver?')) return;
+  state.boards = state.boards.filter(b => b.id !== id);
+  if (state.activeBoardId === id) {
+    state.activeBoardId = state.boards[0]?.id || null;
+  }
+  saveState();
+  render();
+  showToast('Board slettet');
+}
+
+function addColumn() {
+  const b = activeBoard();
+  if (!b) return;
+  const name = prompt('Navn på ny kolonne:');
+  if (!name) return;
+  const colors = ['#6B7280','#3B82F6','#F59E0B','#10B981','#8B5CF6','#EF4444'];
+  b.columns.push({ id: uid(), name: name.trim(), color: colors[b.columns.length % colors.length], tasks: [] });
+  saveState();
+  renderBoard();
+}
+
+function deleteColumn(e, colId) {
+  e.stopPropagation();
+  const b = activeBoard();
+  if (!b) return;
+  const col = b.columns.find(c => c.id === colId);
+  if (!col) return;
+  if (col.tasks.length > 0 && !confirm(`Kolonnen "${col.name}" har ${col.tasks.length} opgave(r). Slet alligevel?`)) return;
+  b.columns = b.columns.filter(c => c.id !== colId);
+  saveState();
+  renderBoard();
+}
+
+// ── TASK MODAL ────────────────────────────────────────
+function openNewTaskModal(preColId) {
+  editingTaskId = null;
+  editingTaskBoardId = null;
+  document.getElementById('task-modal-title').textContent = 'Ny opgave';
+  document.getElementById('f-task-title').value = '';
+  document.getElementById('f-task-desc').value = '';
+  document.getElementById('f-task-assignee').value = '';
+  document.getElementById('f-task-deadline').value = '';
+  document.getElementById('task-delete-btn').style.display = 'none';
+  populateColSelect(preColId);
+  document.getElementById('task-modal').classList.add('open');
+  setTimeout(() => document.getElementById('f-task-title').focus(), 50);
+}
+
+function openEditTask(e, taskId, colId) {
+  e.stopPropagation();
+  openEditTaskById(taskId, colId);
+}
+
+function openEditTaskById(taskId, colId) {
+  const b = activeBoard();
+  if (!b) return;
+  const col = b.columns.find(c => c.id === colId);
+  if (!col) return;
+  const task = col.tasks.find(t => t.id === taskId);
+  if (!task) return;
+
+  editingTaskId = taskId;
+  editingTaskBoardId = b.id;
+  document.getElementById('task-modal-title').textContent = 'Rediger opgave';
+  document.getElementById('f-task-title').value = task.title;
+  document.getElementById('f-task-desc').value = task.description || '';
+  document.getElementById('f-task-assignee').value = task.assignee || '';
+  document.getElementById('f-task-deadline').value = task.deadline || '';
+  document.getElementById('task-delete-btn').style.display = '';
+  populateColSelect(colId);
+  document.getElementById('task-modal').classList.add('open');
+  setTimeout(() => document.getElementById('f-task-title').focus(), 50);
+}
+
+function populateColSelect(selected) {
+  const b = activeBoard();
+  const sel = document.getElementById('f-task-col');
+  sel.innerHTML = '';
+  if (!b) return;
+  b.columns.forEach(col => {
+    const opt = document.createElement('option');
+    opt.value = col.id;
+    opt.textContent = col.name;
+    if (col.id === selected) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function closeTaskModal() {
+  document.getElementById('task-modal').classList.remove('open');
+  editingTaskId = null;
+}
+
+function saveTask() {
+  const title = document.getElementById('f-task-title').value.trim();
+  if (!title) { document.getElementById('f-task-title').focus(); return; }
+  const desc = document.getElementById('f-task-desc').value.trim();
+  const assignee = document.getElementById('f-task-assignee').value.trim();
+  const deadline = document.getElementById('f-task-deadline').value;
+  const colId = document.getElementById('f-task-col').value;
+  const b = activeBoard();
+  if (!b) return;
+
+  if (editingTaskId) {
+    // move if column changed
+    let found = false;
+    b.columns.forEach(col => {
+      const idx = col.tasks.findIndex(t => t.id === editingTaskId);
+      if (idx !== -1) {
+        const task = col.tasks[idx];
+        task.title = title; task.description = desc; task.assignee = assignee; task.deadline = deadline;
+        if (col.id !== colId) {
+          col.tasks.splice(idx, 1);
+          const target = b.columns.find(c => c.id === colId);
+          if (target) target.tasks.push(task);
+        }
+        found = true;
+      }
+    });
+  } else {
+    const col = b.columns.find(c => c.id === colId);
+    if (col) col.tasks.push({ id: uid(), title, description: desc, assignee, deadline });
+  }
+
+  saveState();
+  renderBoard();
+  closeTaskModal();
+  showToast(editingTaskId ? 'Opgave gemt' : 'Opgave oprettet ✓');
+}
+
+function deleteCurrentTask() {
+  if (!editingTaskId) return;
+  const b = activeBoard();
+  if (!b) return;
+  b.columns.forEach(col => {
+    col.tasks = col.tasks.filter(t => t.id !== editingTaskId);
+  });
+  saveState();
+  renderBoard();
+  closeTaskModal();
+  showToast('Opgave slettet');
+}
+
+// ── BOARD MODAL ───────────────────────────────────────
+function openNewBoardModal() {
+  document.getElementById('f-board-name').value = '';
+  selectedBoardColor = BOARD_COLORS[0];
+  renderColorPicker();
+  document.getElementById('board-modal').classList.add('open');
+  setTimeout(() => document.getElementById('f-board-name').focus(), 50);
+}
+
+function closeBoardModal() {
+  document.getElementById('board-modal').classList.remove('open');
+}
+
+function renderColorPicker() {
+  const cp = document.getElementById('board-color-picker');
+  cp.innerHTML = '';
+  BOARD_COLORS.forEach(c => {
+    const d = document.createElement('div');
+    d.className = 'color-dot' + (c === selectedBoardColor ? ' selected' : '');
+    d.style.background = c;
+    d.onclick = () => { selectedBoardColor = c; renderColorPicker(); };
+    cp.appendChild(d);
+  });
+}
+
+function createBoard() {
+  const name = document.getElementById('f-board-name').value.trim();
+  if (!name) { document.getElementById('f-board-name').focus(); return; }
+
+  const colColors = ['#6B7280','#3B82F6','#F59E0B','#10B981'];
+  const board = {
+    id: uid(),
+    name,
+    color: selectedBoardColor,
+    columns: DEFAULT_COLUMNS.map((n,i) => ({ id: uid(), name: n, color: colColors[i], tasks: [] }))
+  };
+  state.boards.push(board);
+  state.activeBoardId = board.id;
+  saveState();
+  render();
+  closeBoardModal();
+  showToast(`Board "${name}" oprettet ✓`);
+}
+
+// ── DRAG & DROP ───────────────────────────────────────
+let dragTaskId = null;
+let dragColId = null;
+
+function onDragStart(e) {
+  dragTaskId = e.currentTarget.dataset.taskId;
+  dragColId = e.currentTarget.dataset.colId;
+  setTimeout(() => e.currentTarget.classList.add('dragging'), 0);
+}
+
+function onDragEnd(e) {
+  e.currentTarget.classList.remove('dragging');
+}
+
+function onDragOver(e, colId) {
+  e.preventDefault();
+  document.getElementById('col-body-' + colId)?.classList.add('drag-over');
+}
+
+function onDragLeave(e, colId) {
+  document.getElementById('col-body-' + colId)?.classList.remove('drag-over');
+}
+
+function onDrop(e, targetColId) {
+  e.preventDefault();
+  document.getElementById('col-body-' + targetColId)?.classList.remove('drag-over');
+  if (!dragTaskId || dragColId === targetColId) return;
+
+  const b = activeBoard();
+  if (!b) return;
+  const sourceCol = b.columns.find(c => c.id === dragColId);
+  const targetCol = b.columns.find(c => c.id === targetColId);
+  if (!sourceCol || !targetCol) return;
+
+  const idx = sourceCol.tasks.findIndex(t => t.id === dragTaskId);
+  if (idx === -1) return;
+  const [task] = sourceCol.tasks.splice(idx, 1);
+  targetCol.tasks.push(task);
+
+  saveState();
+  renderBoard();
+  dragTaskId = null;
+  dragColId = null;
+}
+
+// ── TOAST ─────────────────────────────────────────────
+let _toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ── KEYBOARD ──────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+  }
+});
+
+// close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+});
+
+function focusSidebar() {}
+
+// ── BOOT ──────────────────────────────────────────────
+loadState();
+</script>
+</body>
+</html>
