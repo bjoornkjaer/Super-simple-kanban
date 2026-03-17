@@ -1,6 +1,6 @@
 # 📋 Foreningsplanner
 
-Et simpelt, browserbaseret kanban-værktøj til foreninger og frivillige organisationer — inspireret af Microsoft Planner, men uden behov for M365-licenser eller IT-opsætning.
+Et simpelt, browserbaseret kanban-værktøj til foreninger og frivillige organisationer — inspireret af Microsoft Planner og andre kanban værktøjer, men utrolig nem at komme i gang med.
 
 Alle i foreningen tilgår det samme board via én URL. Ingen app. Ingen login. Ingen abonnement.
 
@@ -24,7 +24,7 @@ Løsningen kræver to gratis konti: **Turso** (database) og **Cloudflare Pages**
 
 ### Trin 1 — Opret Turso database
 
-Turso er en gratis, hosted SQLite-database. [Opret konto på turso.tech](https://turso.tech), installer derefter CLI:
+Turso er en gratis, hosted SQLite-database. [Opret konto på turso.tech](https://turso.tech), installer derefter CLI (Kan også gøres i GUI)
 
 ```bash
 # macOS / Linux
@@ -45,7 +45,7 @@ turso db tokens create foreningsplanner    # kopiér dette token
 
 ### Trin 2 — Indsæt dine credentials
 
-Åbn `planner.html` i en teksteditor og find de to linjer øverst i `<script>`-blokken:
+Åbn `index.html` i en teksteditor og find de to linjer øverst i `<script>`-blokken:
 
 ```js
 const TURSO_URL        = "TURSO_DATABASE_URL";
@@ -66,7 +66,7 @@ const TURSO_AUTH_TOKEN = "eyJhbGc...dit-token...";
 Pak filen i en zip (Cloudflare kræver zip-upload):
 
 ```bash
-zip planner-upload.zip planner.html
+zip planner-upload.zip index.html
 ```
 
 1. Gå til [pages.cloudflare.com](https://pages.cloudflare.com) og opret en gratis konto
@@ -82,7 +82,7 @@ Databasetabellen oprettes automatisk første gang siden åbnes. Du er klar.
 ## Opdater til ny version
 
 ```bash
-zip planner-upload.zip planner.html
+zip planner-upload.zip index.html
 ```
 
 Gå til dit projekt på Cloudflare Pages → **"Create new deployment"** → upload ny zip. URL'en forbliver den samme.
@@ -92,14 +92,14 @@ Gå til dit projekt på Cloudflare Pages → **"Create new deployment"** → upl
 ## Arkitektur
 
 ```
-Browser → Cloudflare Pages (planner.html)
+Browser → Cloudflare Pages (index.html)
                ↓
           Turso HTTP API
                ↓
           SQLite database
 ```
 
-Ingen server. Ingen backend. `planner.html` taler direkte med Turso via deres REST API. Al data gemmes som ét JSON-objekt i tabellen `planner_state`.
+Ingen server. Ingen backend. `index.html` taler direkte med Turso via deres REST API. Al data gemmes som ét JSON-objekt i tabellen `planner_state`.
 
 Begge services er **gratis** til dette formål og vil ikke nå deres grænser for en forenings brug.
 
@@ -108,14 +108,6 @@ Begge services er **gratis** til dette formål og vil ikke nå deres grænser fo
 ## Sikkerhed
 
 Turso auth-tokenet ligger i sidens kildekode, da der ikke er noget backend-lag. Det er acceptabelt til intern foreningsbrug med ikke-sensitiv data. Et reelt loginflow er planlagt som fremtidig forbedring.
-
----
-
-## Fremtidige forbedringer
-
-- [ ] Loginflow med brugernavn/password og roller (admin / læse-only)
-- [ ] Læse-only visningsside til deling med hele foreningen
-- [ ] Notifikationer ved deadline
 
 ---
 
